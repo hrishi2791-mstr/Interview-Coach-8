@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#080810">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>InterviewCrack PRO</title>
+
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neon: { green: '#00ff88', blue: '#00d4ff', purple: '#bf00ff', pink: '#ff0080', yellow: '#ffdd00', orange: '#ff8800' },
+                        dark: { 950: '#05050d', 900: '#080810', 800: '#0f0f1a', 700: '#161622', 600: '#1d1d2e', 500: '#252538' }
+                    },
+                    fontFamily: {
+                        display: ['Syne', 'sans-serif'],
+                        body: ['DM Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #080810;
+            color: #fff;
+            overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== SAFE AREA VARIABLES ===== */
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --nav-height: 64px;
+            --nav-total: calc(64px + max(var(--sab), 12px));
+        }
+
+        /* ===== GLASS ===== */
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.07); }
+        .glass-strong { background: rgba(10,10,22,0.85); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.09); }
+        .glass-card { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
+
+        /* ===== NAV — S23 ULTRA FIX ===== */
+        #bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 40;
+            background: rgba(8,8,18,0.92);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-top: 1px solid rgba(255,255,255,0.07);
+            /* Total height: nav buttons + system gesture area */
+            padding-bottom: max(var(--sab), 12px);
+            padding-left: var(--sal);
+            padding-right: var(--sar);
+        }
+        #bottom-nav .nav-inner {
+            display: flex;
+            align-items: stretch;
+            height: var(--nav-height);
+            position: relative;
+        }
+        .tab-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 8px 4px;
+            min-height: var(--nav-height);
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            -webkit-tap-highlight-color: transparent;
+            color: rgba(255,255,255,0.35);
+            position: relative;
+        }
+        .tab-btn.active { color: #00ff88; }
+        .tab-btn .tab-icon { font-size: 22px; line-height: 1; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+        .tab-btn.active .tab-icon { transform: scale(1.15) translateY(-1px); }
+        .tab-btn .tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; line-height: 1; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+        .tab-indicator-pill {
+            position: absolute;
+            top: 8px;
+            height: 3px;
+            border-radius: 0 0 3px 3px;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            transition: left 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s ease;
+            pointer-events: none;
+        }
+        /* Active tab bg glow */
+        .tab-btn.active::before {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border-radius: 14px;
+            background: rgba(0,255,136,0.06);
+        }
+
+        /* ===== MAIN CONTENT PAD ===== */
+        #app-content {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: var(--nav-total);
+        }
+        #main-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* ===== GLOWS ===== */
+        .glow-green { box-shadow: 0 0 24px rgba(0,255,136,0.25), 0 0 50px rgba(0,255,136,0.08); }
+        .glow-blue  { box-shadow: 0 0 24px rgba(0,212,255,0.25), 0 0 50px rgba(0,212,255,0.08); }
+        .glow-purple{ box-shadow: 0 0 24px rgba(191,0,255,0.25), 0 0 50px rgba(191,0,255,0.08); }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeUp   { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+        @keyframes slideUp  { from { transform:translateY(100%); } to { transform:translateY(0); } }
+        @keyframes slideDown{ from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        @keyframes pulseNeon{ 0%,100%{opacity:1;} 50%{opacity:.45;} }
+        @keyframes float    { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+        @keyframes spin     { to{transform:rotate(360deg);} }
+        @keyframes confetti { 0%{transform:translateY(0) rotate(0deg);opacity:1;} 100%{transform:translateY(100vh) rotate(720deg);opacity:0;} }
+        @keyframes typewriter { from{width:0;} to{width:100%;} }
+        @keyframes blinkCursor { 0%,100%{border-right-color:#00ff88;} 50%{border-right-color:transparent;} }
+        @keyframes shimmer { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
+        @keyframes messagePop { from{opacity:0;transform:scale(.92) translateY(8px);} to{opacity:1;transform:scale(1) translateY(0);} }
+
+        .anim-fade-up { animation: fadeUp .45s ease-out forwards; }
+        .anim-fade-in { animation: fadeIn .3s ease-out forwards; }
+        .anim-slide-up { animation: slideUp .35s cubic-bezier(0.32,0.72,0,1) forwards; }
+        .anim-float    { animation: float 3s ease-in-out infinite; }
+        .anim-pulse    { animation: pulseNeon 2s ease-in-out infinite; }
+        .anim-spin     { animation: spin 1s linear infinite; }
+        .anim-msg-pop  { animation: messagePop .3s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+        .delay-1 { animation-delay: .08s; }
+        .delay-2 { animation-delay: .16s; }
+        .delay-3 { animation-delay: .24s; }
+        .delay-4 { animation-delay: .32s; }
+        .delay-5 { animation-delay: .40s; }
+
+        .shimmer-skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,.03) 25%, rgba(255,255,255,.07) 50%, rgba(255,255,255,.03) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 10px;
+        }
+
+        /* ===== PROGRESS RING ===== */
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-ring__circle { transition: stroke-dashoffset 1.1s cubic-bezier(0.4,0,0.2,1); stroke-linecap: round; }
+
+        /* ===== BUTTONS ===== */
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #080810;
+            font-weight: 700;
+            border-radius: 16px;
+            transition: all .25s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn-primary:active { transform: scale(.96); filter: brightness(.92); }
+        .btn-ghost { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; transition: all .2s ease; }
+        .btn-ghost:active { transform: scale(.96); background: rgba(255,255,255,.09); }
+        .btn-ai {
+            background: linear-gradient(135deg, #7c3aed, #00d4ff);
+            color: white;
+            font-weight: 700;
+            border-radius: 16px;
+            transition: all .25s ease;
+        }
+        .btn-ai:active { transform: scale(.96); }
+
+        /* ===== INPUT ===== */
+        .input-field {
+            background: rgba(255,255,255,.04);
+            border: 1.5px solid rgba(255,255,255,.1);
+            border-radius: 14px;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color .2s ease, box-shadow .2s ease;
+            outline: none;
+        }
+        .input-field:focus { border-color: #00ff88; box-shadow: 0 0 0 3px rgba(0,255,136,.1); }
+
+        /* ===== TOGGLE ===== */
+        .toggle { width: 46px; height: 26px; border-radius: 13px; background: rgba(255,255,255,.12); cursor: pointer; position: relative; transition: background .3s ease; }
+        .toggle.on { background: linear-gradient(135deg, #00ff88, #00d4ff); }
+        .toggle::after { content:''; position:absolute; width:20px; height:20px; border-radius:50%; background:white; top:3px; left:3px; transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
+        .toggle.on::after { transform: translateX(20px); }
+
+        /* ===== FLASHCARD ===== */
+        .flashcard { perspective: 1200px; cursor: pointer; user-select: none; }
+        .flashcard-inner { position:relative; transform-style:preserve-3d; transition:transform .6s cubic-bezier(.4,0,.2,1); }
+        .flashcard.flipped .flashcard-inner { transform:rotateY(180deg); }
+        .flashcard-front, .flashcard-back { backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+        .flashcard-back { position:absolute; top:0;left:0;right:0; transform:rotateY(180deg); }
+
+        /* ===== AI CHAT ===== */
+        .chat-msg-user { align-self: flex-end; background: linear-gradient(135deg, rgba(0,255,136,.18), rgba(0,212,255,.12)); border: 1px solid rgba(0,255,136,.25); border-radius: 20px 20px 4px 20px; max-width: 82%; }
+        .chat-msg-ai { align-self: flex-start; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 20px 20px 20px 4px; max-width: 88%; }
+        .typing-dots span { display:inline-block; width:7px; height:7px; border-radius:50%; background:#00d4ff; animation:pulseNeon 1.2s ease-in-out infinite; }
+        .typing-dots span:nth-child(2){ animation-delay:.2s; }
+        .typing-dots span:nth-child(3){ animation-delay:.4s; }
+
+        /* ===== MODALS ===== */
+        .modal-overlay { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); }
+        .modal-sheet { position:absolute; bottom:0; left:0; right:0; background:#0f0f1a; border-radius:28px 28px 0 0; padding-bottom:max(var(--sab), 16px); max-height: 88vh; overflow-y:auto; }
+        .modal-center { position:absolute; inset: 16px; top:auto; margin:auto; background:#0f0f1a; border-radius:28px; max-height:88vh; overflow-y:auto; }
+
+        /* ===== TOAST ===== */
+        .toast { animation: slideDown .3s ease-out forwards; }
+        .toast-exit { animation: slideDown .3s ease-out reverse forwards; }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width:3px; height:3px; }
+        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.08); border-radius:2px; }
+
+        /* ===== DETAILS ===== */
+        details summary { list-style:none; }
+        details summary::-webkit-details-marker { display:none; }
+
+        /* ===== HEADER ===== */
+        #app-header {
+            flex-shrink: 0;
+            padding-top: max(var(--sat), 8px);
+        }
+
+        /* ===== ONBOARDING ===== */
+        #onboarding { padding-top: max(var(--sat), 20px); padding-bottom: max(var(--sab), 20px); }
+
+        /* confetti */
+        .confetti-bit { position:fixed; pointer-events:none; z-index:9999; }
+
+        /* ===== FALLBACK COLOR UTILITIES (work without Tailwind config) ===== */
+        .text-neon-green  { color: #00ff88 !important; }
+        .text-neon-blue   { color: #00d4ff !important; }
+        .text-neon-purple { color: #bf00ff !important; }
+        .text-neon-pink   { color: #ff0080 !important; }
+        .text-neon-yellow { color: #ffdd00 !important; }
+        .text-neon-orange { color: #ff8800 !important; }
+        .text-dark-900    { color: #080810 !important; }
+        .bg-dark-900  { background-color: #080810; }
+        .bg-dark-800  { background-color: #0f0f1a; }
+        .bg-dark-700  { background-color: #161622; }
+        .bg-neon-green  { background-color: #00ff88; }
+        .bg-neon-blue   { background-color: #00d4ff; }
+        .bg-neon-purple { background-color: #bf00ff; }
+        .bg-neon-yellow { background-color: #ffdd00; }
+        .bg-neon-green\/10  { background-color: rgba(0,255,136,.10); }
+        .bg-neon-green\/15  { background-color: rgba(0,255,136,.15); }
+        .bg-neon-blue\/10   { background-color: rgba(0,212,255,.10); }
+        .bg-neon-blue\/15   { background-color: rgba(0,212,255,.15); }
+        .bg-neon-purple\/10 { background-color: rgba(191,0,255,.10); }
+        .bg-red-500\/10     { background-color: rgba(239,68,68,.10); }
+        .bg-red-500\/15     { background-color: rgba(239,68,68,.15); }
+        .bg-white\/3        { background-color: rgba(255,255,255,.03); }
+        .bg-white\/5        { background-color: rgba(255,255,255,.05); }
+        .bg-white\/8        { background-color: rgba(255,255,255,.08); }
+        .border-neon-green  { border-color: #00ff88; }
+        .border-neon-blue   { border-color: #00d4ff; }
+        .border-white\/5    { border-color: rgba(255,255,255,.05); }
+        .border-white\/8    { border-color: rgba(255,255,255,.08); }
+        .border-white\/10   { border-color: rgba(255,255,255,.10); }
+        .border-red-500\/20 { border-color: rgba(239,68,68,.20); }
+        .text-red-400   { color: #f87171; }
+        .border-red-400 { border-color: #f87171; }
+        .font-display { font-family: 'Syne', sans-serif; }
+        .font-mono    { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body>
+
+<div id="onboarding" class="fixed inset-0 z-50 bg-dark-900 flex items-center justify-center" style="display:none;">
+    <div style="position:absolute;top:10%;left:20%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,136,.07),transparent 70%);pointer-events:none;"></div>
+    <div style="position:absolute;bottom:15%;right:15%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.06),transparent 70%);pointer-events:none;"></div>
+
+    <div class="text-center px-8 max-w-sm relative z-10">
+        <div class="anim-float mb-8 inline-block">
+            <div class="w-28 h-28 rounded-3xl glow-green flex items-center justify-center text-6xl" style="background:linear-gradient(135deg,#00ff88,#00d4ff)">⚡</div>
+        </div>
+        <h1 class="text-4xl font-display font-extrabold mb-3" style="background:linear-gradient(135deg,#00ff88,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">InterviewCrack<br>PRO</h1>
+        <p class="text-gray-400 mb-3 text-sm leading-relaxed">AI-powered interview feedback. Fix grammar, fill knowledge gaps, practice with Gemini AI Coach.</p>
+        <div class="glass rounded-2xl p-3 mb-8 flex items-center gap-3">
+            <span class="text-2xl">🤖</span>
+            <div class="text-left">
+                <p class="text-xs font-semibold text-neon-blue">NEW: Gemini AI Coach</p>
+                <p class="text-xs text-gray-500">1M context · Free · Real-time feedback</p>
+            </div>
+        </div>
+        <div class="space-y-3">
+            <button onclick="App.startWithSample()" class="w-full py-4 btn-primary text-base">🎮 Try with Sample Data</button>
+            <button onclick="App.startFresh()" class="w-full py-4 btn-ghost text-white font-semibold">🚀 Get Started Free</button>
+        </div>
+        <p class="text-xs text-gray-600 mt-5">Works offline • Data stays on device • No sign-in required</p>
+    </div>
+</div>
+
+<div id="toast-container" class="fixed top-4 right-4 z-[70] flex flex-col gap-2 pointer-events-none" style="max-width:320px;"></div>
+
+<div id="app-content" style="display:none;">
+
+    <header id="app-header" class="flex-shrink-0 glass-strong border-b border-white/5 px-4 pb-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style="background:linear-gradient(135deg,#00ff88,#00d4ff)">⚡</div>
+                <div>
+                    <h1 class="font-display font-bold text-sm leading-tight">InterviewCrack PRO</h1>
+                    <p id="header-sub" class="text-xs text-gray-500">Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div id="ai-status-dot" class="hidden w-2 h-2 rounded-full bg-neon-green anim-pulse" title="AI Connected"></div>
+                <button onclick="App.toggleSearch()" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-gray-400 btn-ghost">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </button>
+                <button onclick="App.openSettings()" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-gray-400 btn-ghost">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="search-bar" class="px-4 py-3 glass-strong border-b border-white/5" style="display:none;">
+        <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input id="search-input" type="text" placeholder="Search questions, topics, errors…" class="input-field w-full py-3 pl-10 pr-10 text-sm" oninput="App.handleSearch(this.value)" autocomplete="off">
+            <button onclick="App.toggleSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div id="search-results" class="mt-3 space-y-2 max-h-52 overflow-y-auto hide-scrollbar"></div>
+    </div>
+
+    <main id="main-scroll" class="hide-scrollbar"></main>
+
+    <div id="ai-chat-panel" style="display:none;" class="flex flex-col flex-1 min-h-0">
+        <div id="chat-messages" class="flex-1 overflow-y-auto hide-scrollbar px-4 py-4 flex flex-col gap-3" style="min-height:0;"></div>
+        <div id="chat-quick-actions" class="px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar">
+            <button onclick="App.sendQuickPrompt('quiz')" class="flex-shrink-0 px-3 py-2 rounded-full text-xs font-semibold btn-ghost text-neon-blue">🎯 Quiz Me</button>
+            <button onclick="App.sendQuickPrompt('star')" class="flex-shrink-0 px-3 py-2 rounded-full text-xs font-semibold btn-ghost text-neon-green">⭐ STAR Tips</button>
+            <button onclick="App.sendQuickPrompt('gaps')" class="flex-shrink-0 px-3 py-2 rounded-full text-xs font-semibold btn-ghost text-neon-purple">🔍 Analyze Gaps</button>
+            <button onclick="App.sendQuickPrompt('mock')" class="flex-shrink-0 px-3 py-2 rounded-full text-xs font-semibold btn-ghost text-neon-yellow">🎤 Mock Interview</button>
+        </div>
+        <div class="px-4 py-3 border-t border-white/5">
+            <div class="flex gap-2 items-end">
+                <textarea id="chat-input" class="input-field flex-1 py-3 px-4 text-sm resize-none" rows="1" placeholder="Ask your AI interview coach…" style="max-height:100px;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();App.sendChat();}"></textarea>
+                <button onclick="App.sendChat()" id="chat-send-btn" class="btn-ai w-11 h-11 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                </button>
+            </div>
+            <p id="ai-key-hint" class="text-xs text-gray-600 mt-2 text-center hidden">Add your Gemini API key in Settings to enable AI</p>
+        </div>
+    </div>
+
+</div>
+
+<nav id="bottom-nav" style="display:none;">
+    <div class="nav-inner" id="nav-inner">
+        <div class="tab-indicator-pill" id="nav-pill"></div>
+        <button class="tab-btn active" data-tab="dashboard" onclick="App.switchTab('dashboard')">
+            <span class="tab-icon">🏠</span>
+            <span class="tab-label">Home</span>
+        </button>
+        <button class="tab-btn" data-tab="grammar" onclick="App.switchTab('grammar')">
+            <span class="tab-icon">✍️</span>
+            <span class="tab-label">Grammar</span>
+        </button>
+        <button class="tab-btn" data-tab="technical" onclick="App.switchTab('technical')">
+            <span class="tab-icon">🔧</span>
+            <span class="tab-label">Tech</span>
+        </button>
+        <button class="tab-btn" data-tab="qa" onclick="App.switchTab('qa')">
+            <span class="tab-icon">💬</span>
+            <span class="tab-label">Q&A</span>
+        </button>
+        <button class="tab-btn" data-tab="progress" onclick="App.switchTab('progress')">
+            <span class="tab-icon">📊</span>
+            <span class="tab-label">Progress</span>
+        </button>
+        <button class="tab-btn" data-tab="ai" onclick="App.switchTab('ai')">
+            <span class="tab-icon">🤖</span>
+            <span class="tab-label">AI Coach</span>
+        </button>
+    </div>
+</nav>
+
+<div id="settings-modal" class="modal-overlay" style="display:none;">
+    <div class="absolute inset-0" onclick="App.closeSettings()"></div>
+    <div class="modal-sheet anim-slide-up p-6" style="position:absolute;">
+        <div class="w-10 h-1 bg-gray-700 rounded-full mx-auto mb-5"></div>
+        <h2 class="text-xl font-display font-bold mb-1">Settings</h2>
+        <p class="text-gray-500 text-sm mb-6">Manage your InterviewCrack PRO</p>
+
+        <div class="glass-card p-4 mb-4">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style="background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(0,212,255,.2));border:1px solid rgba(124,58,237,.4)">🤖</div>
+                <div>
+                    <p class="font-semibold text-sm">Gemini AI Coach</p>
+                    <p class="text-xs text-gray-500">Free · 1M context · 1500 req/day</p>
+                </div>
+                <div id="gemini-status-badge" class="ml-auto px-2 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400">Not Set</div>
+            </div>
+            <input id="gemini-key-input" type="password" placeholder="Paste Gemini API key (AIza…)" class="input-field w-full py-3 px-4 text-sm mb-3" autocomplete="off">
+            <div class="flex gap-2">
+                <button onclick="App.saveGeminiKey()" class="flex-1 py-2.5 btn-ai text-sm">Save Key</button>
+                <button onclick="App.clearGeminiKey()" class="flex-1 py-2.5 btn-ghost text-sm text-gray-400">Clear</button>
+            </div>
+            <p class="text-xs text-gray-600 mt-3">Get free key at <span class="text-neon-blue">aistudio.google.com</span> · Key stored locally on device</p>
+        </div>
+
+        <div class="space-y-3">
+            <button onclick="App.openImportModal();App.closeSettings();" class="w-full glass-card p-4 flex items-center gap-4 text-left">
+                <div class="w-9 h-9 rounded-xl bg-neon-green/10 flex items-center justify-center text-lg">📥</div>
+                <div class="flex-1"><p class="font-semibold text-sm">Import JSON</p><p class="text-xs text-gray-500">Add interview analysis</p></div>
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <button onclick="App.openHistoryModal();App.closeSettings();" class="w-full glass-card p-4 flex items-center gap-4 text-left">
+                <div class="w-9 h-9 rounded-xl bg-neon-blue/10 flex items-center justify-center text-lg">🕐</div>
+                <div class="flex-1"><p class="font-semibold text-sm">Interview History</p><p class="text-xs text-gray-500">View past analyses</p></div>
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <button onclick="App.exportData()" class="w-full glass-card p-4 flex items-center gap-4 text-left">
+                <div class="w-9 h-9 rounded-xl bg-neon-purple/10 flex items-center justify-center text-lg">📤</div>
+                <div class="flex-1"><p class="font-semibold text-sm">Export Backup</p><p class="text-xs text-gray-500">Download JSON</p></div>
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <button onclick="App.clearAllData()" class="w-full glass-card p-4 flex items-center gap-4 text-left" style="border-color:rgba(239,68,68,.2)">
+                <div class="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center text-lg">🗑️</div>
+                <div class="flex-1"><p class="font-semibold text-sm text-red-400">Clear All Data</p><p class="text-xs text-gray-500">Cannot be undone</p></div>
+            </button>
+        </div>
+        <div class="mt-6 pt-5 border-t border-white/5 text-center">
+            <p class="text-xs text-gray-600">InterviewCrack PRO v2.0 · Powered by Gemini AI</p>
+        </div>
+    </div>
+</div>
+
+<div id="import-modal" class="modal-overlay" style="display:none;">
+    <div class="absolute inset-0" onclick="App.closeImportModal()"></div>
+    <div class="modal-center anim-fade-up p-6" style="top:16px;bottom:auto;">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-display font-bold">Import Interview JSON</h2>
+            <button onclick="App.closeImportModal()" class="w-8 h-8 glass rounded-xl flex items-center justify-center text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <textarea id="json-input" class="input-field w-full font-mono text-xs py-3 px-4 resize-none" rows="10" placeholder='Paste your interview analysis JSON here…&#10;&#10;Required fields: interview_meta, scores, grammar_and_speech, technical_gaps, questions, action_plan'></textarea>
+        <div id="json-error" class="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm" style="display:none;"></div>
+        <div class="mt-4 flex gap-3">
+            <button onclick="App.loadSampleJSON()" class="flex-1 py-3 btn-ghost text-sm font-semibold">Load Sample</button>
+            <button onclick="App.validateAndSave()" class="flex-1 py-3 btn-primary text-sm">✓ Validate & Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="history-modal" class="modal-overlay" style="display:none;">
+    <div class="absolute inset-0" onclick="App.closeHistoryModal()"></div>
+    <div class="modal-sheet anim-slide-up p-6">
+        <div class="w-10 h-1 bg-gray-700 rounded-full mx-auto mb-5"></div>
+        <h2 class="text-xl font-display font-bold mb-4">Interview History</h2>
+        <div id="history-list" class="space-y-3"></div>
+    </div>
+</div>
+
+<div id="practice-modal" class="modal-overlay" style="display:none;">
+    <div class="absolute inset-0" onclick="App.closePracticeModal()"></div>
+    <div class="modal-center anim-fade-up p-6" style="top:16px;bottom:auto;">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-display font-bold">Practice Answer</h2>
+            <button onclick="App.closePracticeModal()" class="w-8 h-8 glass rounded-xl flex items-center justify-center text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="glass-card p-4 mb-4">
+            <p class="text-xs text-gray-500 mb-1">Question:</p>
+            <p id="practice-question" class="font-semibold text-sm leading-snug"></p>
+        </div>
+        <label class="text-xs text-gray-400 block mb-2">Your STAR Answer:</label>
+        <textarea id="practice-answer-input" class="input-field w-full text-sm py-3 px-4 resize-none mb-4" rows="5" placeholder="Situation: …&#10;Task: …&#10;Action: …&#10;Result: …"></textarea>
+        <button onclick="App.gradeAnswerWithAI()" id="ai-grade-btn" class="w-full py-3 btn-ai text-sm mb-3">🤖 Grade with AI Coach</button>
+        <div id="ai-grade-result" class="glass-card p-4 mb-3 text-sm text-gray-300 leading-relaxed" style="display:none;"></div>
+        <details class="glass-card overflow-hidden">
+            <summary class="p-4 cursor-pointer flex items-center justify-between hover:bg-white/5 transition">
+                <span class="text-sm font-semibold text-neon-green">View Ideal STAR Answer</span>
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="p-4 pt-0 border-t border-white/5">
+                <p id="practice-ideal" class="text-xs text-gray-300 leading-relaxed"></p>
+            </div>
+        </details>
+        <button onclick="App.savePracticeAnswer()" class="w-full py-3 btn-primary mt-4">Save Progress</button>
+    </div>
+</div>
+
+<script>
+const App = (function() {
+    'use strict';
+
+    // ── STORAGE KEYS ──────────────────────────────────────────
+    const K = {
+        interviews: 'ic_interviews',
+        currentIdx: 'ic_current_idx',
+        streak:     'ic_streak',
+        lastVisit:  'ic_last_visit',
+        onboarded:  'ic_onboarded',
+        practice:   'ic_practice_answers',
+        grammarProg:'ic_grammar_prog',
+        techProg:   'ic_tech_prog',
+        geminiKey:  'ic_gemini_key',
+        chatHistory:'ic_chat_history'
+    };
+
+    // ── STATE ─────────────────────────────────────────────────
+    let state = {
+        tab: 'dashboard',
+        interviews: [],
+        current: null,
+        streak: 0,
+        grammarFilter: 'all',
+        practiceIdx: null,
+        chartInst: null,
+        chatMessages: [],
+        aiLoading: false
+    };
+
+    // ── SAMPLE DATA ───────────────────────────────────────────
+    const SAMPLE = {
+        "interview_meta": { "company": "TechCorp Inc.", "role": "Senior Software Engineer", "round": "Technical Round 2", "date": "2025-01-15" },
+        "scores": { "communication": 72, "grammar": 65, "technical": 78, "overall_readiness": 71 },
+        "grammar_and_speech": [
+            { "error_type": "Past Tense", "original": "I work on this project last year", "corrected": "I worked on this project last year", "fix_strategy": "Use '-ed' ending for regular past tense verbs." },
+            { "error_type": "Subject-Verb Agreement", "original": "The team were responsible for deployment", "corrected": "The team was responsible for deployment", "fix_strategy": "Collective nouns like 'team' take singular verbs in American English." },
+            { "error_type": "Filler Words", "original": "So, basically, um, we implemented the feature", "corrected": "We implemented the feature", "fix_strategy": "Eliminate filler words. Pause silently instead." },
+            { "error_type": "Article Usage", "original": "I have experience in the machine learning", "corrected": "I have experience in machine learning", "fix_strategy": "Don't use 'the' before general concepts or fields of study." }
+        ],
+        "technical_gaps": [
+            { "topic": "System Design - Load Balancing", "knowledge_gap": "Unable to explain different load balancing strategies", "study_resource_query": "load balancing algorithms system design" },
+            { "topic": "Python - Async/Await", "knowledge_gap": "Confused about event loop mechanics", "study_resource_query": "python asyncio tutorial" },
+            { "topic": "Database - Indexing", "knowledge_gap": "Could not explain B-tree vs Hash index", "study_resource_query": "database indexing B-tree hash" }
+        ],
+        "questions": [
+            { "question": "Tell me about a challenging project you worked on", "your_answer": "I worked on a payment system. It was hard because of deadlines.", "ideal_star_answer": "Situation: At my previous company, we needed to rebuild our payment system to handle 10x volume. Task: As tech lead, I was responsible for the new architecture. Action: I proposed microservices with event-driven architecture, conducted daily standups, and implemented circuit breakers. Result: We launched early, handled 12x traffic with 99.99% uptime.", "feedback": "Your answer lacks specific details and measurable outcomes. Use STAR format." },
+            { "question": "How would you design a URL shortener?", "your_answer": "I would use a database to store URLs and generate short codes.", "ideal_star_answer": "I'd clarify requirements first — expecting 100M URLs/month. For generation, use base62 encoding of auto-incrementing ID. Architecture: Load balancer → stateless API servers → Redis cache → sharded MySQL. Add analytics, rate limiting.", "feedback": "Good start but needs more depth. Always clarify requirements first." }
+        ],
+        "action_plan": [
+            { "task": "Complete System Design Primer - Load Balancing", "status": "pending" },
+            { "task": "Build async Python project", "status": "pending" },
+            { "task": "Practice STAR format with 5 questions daily", "status": "pending" },
+            { "task": "Review and eliminate filler words", "status": "pending" }
+        ]
+    };
+
+    // ── INIT ──────────────────────────────────────────────────
+    function init() {
+        loadState();
+        checkStreak();
+        loadChatHistory();
+        if (!localStorage.getItem(K.onboarded)) {
+            show('onboarding');
+        } else {
+            showApp();
+        }
+        setupKeyboard();
+        setupSwipe();
+        updateGeminiStatusUI();
+    }
+
+    function showApp() {
+        show('app-content');
+        show('bottom-nav');
+        render();
+    }
+
+    function loadState() {
+        try {
+            const interviews = localStorage.getItem(K.interviews);
+            const idx = localStorage.getItem(K.currentIdx);
+            const streak = localStorage.getItem(K.streak);
+            state.interviews = interviews ? JSON.parse(interviews) : [];
+            state.streak = streak ? parseInt(streak) : 0;
+            if (idx !== null && state.interviews[parseInt(idx)]) {
+                state.current = state.interviews[parseInt(idx)];
+            } else if (state.interviews.length > 0) {
+                state.current = state.interviews[state.interviews.length - 1];
+            }
+        } catch(e) { state.interviews = []; state.current = null; }
+    }
+
+    function saveState() {
+        try {
+            localStorage.setItem(K.interviews, JSON.stringify(state.interviews));
+            localStorage.setItem(K.streak, state.streak.toString());
+            if (state.current) {
+                const i = state.interviews.indexOf(state.current);
+                if (i >= 0) localStorage.setItem(K.currentIdx, i.toString());
+            }
+        } catch(e) {}
+    }
+
+    function checkStreak() {
+        const last = localStorage.getItem(K.lastVisit);
+        const today = new Date().toDateString();
+        if (last && last !== today) {
+            const diff = Math.floor((new Date(today) - new Date(last)) / 86400000);
+            state.streak = diff === 1 ? state.streak + 1 : 1;
+        } else if (!last) { state.streak = 1; }
+        localStorage.setItem(K.lastVisit, today);
+        saveState();
+    }
+
+    function loadChatHistory() {
+        try {
+            const h = localStorage.getItem(K.chatHistory);
+            state.chatMessages = h ? JSON.parse(h) : [];
+        } catch(e) { state.chatMessages = []; }
+    }
+
+    function saveChatHistory() {
+        try {
+            // Keep last 40 messages
+            const trimmed = state.chatMessages.slice(-40);
+            state.chatMessages = trimmed;
+            localStorage.setItem(K.chatHistory, JSON.stringify(trimmed));
+        } catch(e) {}
+    }
+
+    // ── ONBOARDING ────────────────────────────────────────────
+    function startWithSample() {
+        haptic();
+        const s = JSON.parse(JSON.stringify(SAMPLE));
+        s._id = Date.now();
+        state.interviews.push(s);
+        state.current = s;
+        saveState();
+        localStorage.setItem(K.onboarded, '1');
+        hide('onboarding');
+        showApp();
+        toast('Sample data loaded! 🎉', 'success');
+        confetti();
+    }
+
+    function startFresh() {
+        haptic();
+        localStorage.setItem(K.onboarded, '1');
+        hide('onboarding');
+        showApp();
+        openImportModal();
+    }
+
+    // ── TAB NAVIGATION ────────────────────────────────────────
+    const TABS = ['dashboard','grammar','technical','qa','progress','ai'];
+    const TAB_LABELS = { dashboard:'Dashboard', grammar:'Grammar & Speech', technical:'Technical Gaps', qa:'Q&A Simulator', progress:'Progress Tracking', ai:'AI Coach' };
+
+    function switchTab(name) {
+        haptic('light');
+        state.tab = name;
+        updateNavUI();
+        if (name === 'ai') {
+            renderAITab();
+        } else {
+            hide('ai-chat-panel');
+            show('main-scroll');
+            render();
+        }
+    }
+
+    function updateNavUI() {
+        const idx = TABS.indexOf(state.tab);
+        const inner = document.getElementById('nav-inner');
+        if (!inner) return;
+        const btns = inner.querySelectorAll('.tab-btn');
+        const pill = document.getElementById('nav-pill');
+        btns.forEach((b, i) => {
+            b.classList.toggle('active', i === idx);
+        });
+        if (pill && btns[idx]) {
+            const btnW = btns[idx].offsetWidth;
+            const btnLeft = btns[idx].offsetLeft;
+            pill.style.left = (btnLeft + btnW * .2) + 'px';
+            pill.style.width = (btnW * .6) + 'px';
+        }
+        const sub = document.getElementById('header-sub');
+        if (sub) sub.textContent = TAB_LABELS[state.tab] || '';
+    }
+
+    function render() {
+        const el = document.getElementById('main-scroll');
+        if (!el) return;
+        el.scrollTop = 0;
+        show('main-scroll');
+        hide('ai-chat-panel');
+        switch (state.tab) {
+            case 'dashboard':  el.innerHTML = renderDashboard(); setTimeout(animateRings, 80); break;
+            case 'grammar':    el.innerHTML = renderGrammar(); break;
+            case 'technical':  el.innerHTML = renderTechnical(); break;
+            case 'qa':         el.innerHTML = renderQA(); break;
+            case 'progress':   el.innerHTML = renderProgress(); setTimeout(initChart, 150); break;
+        }
+    }
+
+    // ── DASHBOARD ─────────────────────────────────────────────
+    function renderDashboard() {
+        if (!state.current) return emptyState('No interview data yet', 'Import your first interview analysis to get started', true);
+        const d = state.current, sc = d.scores;
+        const bn = bottleneck(sc);
+        const mastered = getMastered();
+        const totalGaps = d.technical_gaps?.length || 0;
+        const pending = d.action_plan?.filter(t => t.status === 'pending').length || 0;
+        return `
+        <div class="p-4 space-y-4 pb-6">
+            <div class="glass-card p-4 anim-fade-up">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="font-display font-bold text-lg leading-tight">${esc(d.interview_meta.company)}</h3>
+                        <p class="text-gray-400 text-sm mt-0.5">${esc(d.interview_meta.role)}</p>
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                            <span class="text-xs px-2.5 py-1 rounded-full" style="background:rgba(0,212,255,.1);color:#00d4ff">${esc(d.interview_meta.round)}</span>
+                            <span class="text-xs text-gray-500">${fmtDate(d.interview_meta.date)}</span>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <div class="flex items-center gap-1 justify-end">
+                            <span class="text-2xl">🔥</span>
+                            <span class="font-display font-bold text-2xl text-neon-yellow">${state.streak}</span>
+                        </div>
+                        <p class="text-xs text-gray-500">Day Streak</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                ${scoreRing('Overall', sc.overall_readiness, '#00ff88', 0)}
+                ${scoreRing('Technical', sc.technical, '#00d4ff', 1)}
+                ${scoreRing('Communication', sc.communication, '#bf00ff', 2)}
+                ${scoreRing('Grammar', sc.grammar, '#ff0080', 3)}
+            </div>
+
+            <div class="glass-card p-4 anim-fade-up delay-3" style="border-left:3px solid #ffdd00;">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl anim-pulse flex-shrink-0">⚠️</span>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-0.5">Biggest Bottleneck</p>
+                        <p class="font-semibold text-neon-yellow text-sm">${bn.name}: ${bn.detail}</p>
+                        <button onclick="App.switchTab('${bn.tab}')" class="mt-2 text-xs text-neon-green hover:underline">Work on this →</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div class="glass-card p-3 text-center anim-fade-up delay-3">
+                    <p class="text-2xl font-display font-bold text-neon-green">${d.grammar_and_speech?.length||0}</p>
+                    <p class="text-xs text-gray-500 mt-1">Grammar Issues</p>
+                </div>
+                <div class="glass-card p-3 text-center anim-fade-up delay-4">
+                    <p class="text-2xl font-display font-bold text-neon-blue">${mastered}/${totalGaps}</p>
+                    <p class="text-xs text-gray-500 mt-1">Mastered</p>
+                </div>
+                <div class="glass-card p-3 text-center anim-fade-up delay-5">
+                    <p class="text-2xl font-display font-bold text-neon-purple">${pending}</p>
+                    <p class="text-xs text-gray-500 mt-1">Tasks Left</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 anim-fade-up delay-4">
+                <h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm">📋 Action Plan</h3>
+                <div class="space-y-2">
+                    ${(d.action_plan||[]).slice(0,5).map((t,i) => `
+                        <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 active:bg-white/8 transition cursor-pointer" onclick="App.toggleTask(${i})">
+                            <div class="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center transition ${t.status==='completed'?'bg-neon-green text-dark-900':'border-2 border-gray-600'}">
+                                ${t.status==='completed'?'<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>':''}
+                            </div>
+                            <p class="text-sm flex-1 leading-snug ${t.status==='completed'?'line-through text-gray-500':''}">${esc(t.task)}</p>
+                        </div>
+                    `).join('') || '<p class="text-gray-500 text-sm">No tasks yet</p>'}
+                </div>
+            </div>
+
+            <div class="glass-card p-4 anim-fade-up delay-5" style="background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(0,212,255,.07));border-color:rgba(124,58,237,.25);">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">🤖</span>
+                    <div class="flex-1">
+                        <p class="font-semibold text-sm">AI Coach Ready</p>
+                        <p class="text-xs text-gray-400">Get personalized feedback & practice</p>
+                    </div>
+                    <button onclick="App.switchTab('ai')" class="btn-ai px-4 py-2 text-xs font-bold">Chat →</button>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function scoreRing(label, score, color, delay) {
+        const c = 2 * Math.PI * 42;
+        return `
+        <div class="glass-card p-4 flex flex-col items-center anim-fade-up delay-${delay+1}">
+            <div class="relative w-20 h-20">
+                <svg class="progress-ring w-full h-full" viewBox="0 0 100 100">
+                    <circle stroke="rgba(255,255,255,.08)" stroke-width="7" fill="none" cx="50" cy="50" r="42"/>
+                    <circle class="progress-ring__circle" stroke="${color}" stroke-width="7" fill="none" cx="50" cy="50" r="42"
+                        stroke-dasharray="${c}" stroke-dashoffset="${c}" data-score="${score}" data-circ="${c}"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="font-display font-bold text-lg" style="color:${color}">${score}</span>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">${label}</p>
+        </div>`;
+    }
+
+    function animateRings() {
+        document.querySelectorAll('.progress-ring__circle').forEach(c => {
+            const s = parseFloat(c.dataset.score), ci = parseFloat(c.dataset.circ);
+            c.style.strokeDashoffset = ci - (s/100)*ci;
+        });
+    }
+
+    function bottleneck(sc) {
+        const items = [
+            {key:'grammar',name:'Grammar',tab:'grammar',detail:'Tense & filler words'},
+            {key:'technical',name:'Technical',tab:'technical',detail:'Knowledge gaps'},
+            {key:'communication',name:'Communication',tab:'qa',detail:'STAR format needed'}
+        ];
+        return items.reduce((a,b)=>(sc[a.key]||0)<=(sc[b.key]||0)?a:b);
+    }
+
+    function getMastered() {
+        try {
+            const p = JSON.parse(localStorage.getItem(K.techProg)||'{}');
+            return Object.values(p).filter(v=>v==='mastered').length;
+        } catch(e){return 0;}
+    }
+
+    function toggleTask(i) {
+        haptic();
+        if (!state.current?.action_plan?.[i]) return;
+        const t = state.current.action_plan[i];
+        t.status = t.status==='completed'?'pending':'completed';
+        saveState();
+        render();
+        if (t.status==='completed') { toast('Task completed! 🎉','success'); confetti(); }
+    }
+
+    // ── GRAMMAR TAB ───────────────────────────────────────────
+    function renderGrammar() {
+        const errs = state.current?.grammar_and_speech;
+        if (!errs?.length) return emptyState('No grammar issues found','Your speech patterns look great!',false);
+        const types = [...new Set(errs.map(e=>e.error_type))];
+        const prog = getGrammarProg();
+        const filtered = state.grammarFilter==='all' ? errs : errs.filter(e=>e.error_type===state.grammarFilter);
+        const reviewedCount = Object.values(prog).filter(v=>v).length;
+        return `
+        <div class="p-4 space-y-4 pb-6">
+            <div class="glass-card p-3 flex items-center justify-between">
+                <p class="text-sm text-gray-400">Reviewed</p>
+                <div class="flex items-center gap-2">
+                    <div class="w-32 h-2 rounded-full bg-white/10">
+                        <div class="h-2 rounded-full bg-gradient-to-r from-neon-green to-neon-blue" style="width:${errs.length?Math.round(reviewedCount/errs.length*100):0}%"></div>
+                    </div>
+                    <span class="text-xs font-mono text-neon-green">${reviewedCount}/${errs.length}</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+                <button onclick="App.filterGrammar('all')" class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition ${state.grammarFilter==='all'?'bg-neon-green text-dark-900':'btn-ghost text-gray-400'}">All (${errs.length})</button>
+                ${types.map(t=>`<button onclick="App.filterGrammar('${esc(t)}')" class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition ${state.grammarFilter===t?'bg-neon-green text-dark-900':'btn-ghost text-gray-400'}">${esc(t)}</button>`).join('')}
+            </div>
+
+            <div class="space-y-3">
+                ${filtered.map((e,i)=>{
+                    const idx = errs.indexOf(e);
+                    const done = prog[idx];
+                    return `
+                    <div class="glass-card p-4 anim-fade-up ${done?'opacity-60':''}">
+                        <div class="flex items-start justify-between mb-3">
+                            <span class="text-xs px-2.5 py-1 rounded-full font-semibold" style="background:rgba(255,0,128,.12);color:#ff0080">${esc(e.error_type)}</span>
+                            <button onclick="App.markGrammarReviewed(${idx})" class="w-7 h-7 rounded-xl flex items-center justify-center transition ${done?'bg-neon-green text-dark-900':'border border-gray-600 text-gray-500 hover:border-neon-green hover:text-neon-green'}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </button>
+                        </div>
+                        <div class="space-y-2 mb-3">
+                            <div class="p-3 rounded-xl" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15)">
+                                <p class="text-xs text-red-400 font-semibold mb-1">❌ Original</p>
+                                <p class="text-sm text-gray-300 font-mono">"${esc(e.original)}"</p>
+                            </div>
+                            <div class="p-3 rounded-xl" style="background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.15)">
+                                <p class="text-xs text-neon-green font-semibold mb-1">✓ Corrected</p>
+                                <p class="text-sm text-gray-200 font-mono">"${esc(e.corrected)}"</p>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-white/3">
+                            <p class="text-xs text-gray-500 font-semibold mb-1">💡 Fix Strategy</p>
+                            <p class="text-xs text-gray-300 leading-relaxed">${esc(e.fix_strategy)}</p>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    }
+
+    function getGrammarProg(){try{return JSON.parse(localStorage.getItem(K.grammarProg)||'{}')}catch(e){return {}}}
+    function filterGrammar(f){haptic('light');state.grammarFilter=f;render();}
+    function markGrammarReviewed(i){haptic();const p=getGrammarProg();p[i]=!p[i];localStorage.setItem(K.grammarProg,JSON.stringify(p));render();}
+
+    // ── TECHNICAL TAB ─────────────────────────────────────────
+    function renderTechnical() {
+        const gaps = state.current?.technical_gaps;
+        if (!gaps?.length) return emptyState('No technical gaps logged','Great technical performance!',false);
+        const prog = getTechProg();
+        return `
+        <div class="p-4 space-y-4 pb-6">
+            <div class="glass-card p-3 flex items-center justify-between">
+                <p class="text-sm text-gray-400">Mastery Progress</p>
+                <span class="text-xs font-mono text-neon-blue">${getMastered()}/${gaps.length} mastered</span>
+            </div>
+            ${gaps.map((g,i)=>{
+                const status = prog[i] || 'not-started';
+                const statusCfg = {
+                    'not-started': {label:'Not Started',color:'rgba(255,255,255,.15)',text:'#888'},
+                    'in-progress': {label:'In Progress',color:'rgba(255,221,0,.15)',text:'#ffdd00'},
+                    'mastered':    {label:'Mastered',color:'rgba(0,255,136,.15)',text:'#00ff88'}
+                }[status];
+                return `
+                <div class="glass-card p-4 anim-fade-up delay-${(i%3)+1}">
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="font-semibold text-sm flex-1 pr-3">${esc(g.topic)}</h3>
+                        <button onclick="App.cycleTechStatus(${i})" class="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold transition" style="background:${statusCfg.color};color:${statusCfg.text}">${statusCfg.label}</button>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3 leading-relaxed">⚠️ ${esc(g.knowledge_gap)}</p>
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(g.study_resource_query)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs text-neon-blue hover:underline">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        Study: ${esc(g.study_resource_query)}
+                    </a>
+                </div>`;
+            }).join('')}
+        </div>`;
+    }
+
+    function getTechProg(){try{return JSON.parse(localStorage.getItem(K.techProg)||'{}')}catch(e){return {}}}
+    function cycleTechStatus(i){haptic();const p=getTechProg();const cycle=['not-started','in-progress','mastered'];const cur=p[i]||'not-started';p[i]=cycle[(cycle.indexOf(cur)+1)%3];localStorage.setItem(K.techProg,JSON.stringify(p));render();}
+
+    // ── Q&A TAB ───────────────────────────────────────────────
+    function renderQA() {
+        const qs = state.current?.questions;
+        if (!qs?.length) return emptyState('No Q&A data','Import interview data with questions',false);
+        const pAnswers = getPracticeAnswers();
+        return `
+        <div class="p-4 space-y-4 pb-6">
+            <div class="glass-card p-3">
+                <p class="text-xs text-gray-500 mb-1">Tap a card to flip • Practice mode for STAR answers</p>
+                <div class="w-full h-1.5 rounded-full bg-white/8">
+                    <div class="h-1.5 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink" style="width:${qs.length?Math.round(Object.keys(pAnswers).length/qs.length*100):0}%"></div>
+                </div>
+            </div>
+            ${qs.map((q,i)=>{
+                const hasAnswer = !!pAnswers[i];
+                return `
+                <div class="flashcard anim-fade-up delay-${(i%3)+1}" onclick="App.flipCard(this)">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front glass-card p-5">
+                            <div class="flex items-start justify-between gap-3 mb-4">
+                                <span class="text-xs px-2.5 py-1 rounded-full font-semibold flex-shrink-0" style="background:rgba(191,0,255,.12);color:#bf00ff">Q${i+1}</span>
+                                ${hasAnswer?'<span class="text-xs text-neon-green">✓ Practiced</span>':'<span class="text-xs text-gray-500">Tap to flip</span>'}
+                            </div>
+                            <p class="font-semibold text-sm leading-snug mb-4">${esc(q.question)}</p>
+                            <div class="p-3 rounded-xl" style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.12)">
+                                <p class="text-xs text-gray-400 mb-1">Your answer:</p>
+                                <p class="text-xs text-gray-300 italic">"${esc(q.your_answer)}"</p>
+                            </div>
+                        </div>
+                        <div class="flashcard-back glass-card p-5">
+                            <p class="text-xs font-semibold text-neon-green mb-3">⭐ Ideal STAR Answer</p>
+                            <p class="text-xs text-gray-300 leading-relaxed mb-4">${esc(q.ideal_star_answer)}</p>
+                            <div class="p-3 rounded-xl bg-white/3 mb-4">
+                                <p class="text-xs font-semibold text-neon-yellow mb-1">💬 Feedback</p>
+                                <p class="text-xs text-gray-400">${esc(q.feedback)}</p>
+                            </div>
+                            <button onclick="event.stopPropagation();App.openPracticeModal(${i})" class="w-full py-2.5 btn-primary text-xs">✍️ Practice This</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>`;
+    }
+
+    function getPracticeAnswers(){try{return JSON.parse(localStorage.getItem(K.practice)||'{}')}catch(e){return {}}}
+    function flipCard(el){haptic('light');el.classList.toggle('flipped');}
+
+    function openPracticeModal(i) {
+        haptic();
+        state.practiceIdx = i;
+        const q = state.current?.questions?.[i];
+        if (!q) return;
+        document.getElementById('practice-question').textContent = q.question;
+        document.getElementById('practice-ideal').textContent = q.ideal_star_answer;
+        const saved = getPracticeAnswers()[i];
+        const inp = document.getElementById('practice-answer-input');
+        if (inp) inp.value = saved || '';
+        const gradeResult = document.getElementById('ai-grade-result');
+        if (gradeResult) { gradeResult.style.display='none'; gradeResult.innerHTML=''; }
+        show('practice-modal');
+    }
+
+    function closePracticeModal() { hide('practice-modal'); }
+
+    function savePracticeAnswer() {
+        haptic();
+        const i = state.practiceIdx;
+        if (i===null) return;
+        const val = document.getElementById('practice-answer-input')?.value?.trim();
+        if (!val) { toast('Please write an answer first','error'); return; }
+        const p = getPracticeAnswers();
+        p[i] = { text: val, savedAt: new Date().toISOString() };
+        localStorage.setItem(K.practice, JSON.stringify(p));
+        closePracticeModal();
+        render();
+        toast('Practice answer saved! 📝','success');
+    }
+
+    // ── PROGRESS TAB ──────────────────────────────────────────
+    function renderProgress() {
+        if (!state.current) return emptyState('No data to analyze','Import at least one interview to track progress',true);
+        const d = state.current, sc = d.scores;
+        const gramProg = getGrammarProg();
+        const techProg = getTechProg();
+        const reviewedGram = Object.values(gramProg).filter(Boolean).length;
+        const masteredTech = Object.values(techProg).filter(v=>v==='mastered').length;
+        const totalTasks = d.action_plan?.length||0;
+        const doneTasks = d.action_plan?.filter(t=>t.status==='completed').length||0;
+        const overall = totalTasks ? Math.round((reviewedGram + masteredTech + doneTasks) / ((d.grammar_and_speech?.length||1) + (d.technical_gaps?.length||1) + (totalTasks||1)) * 100) : 0;
+        return `
+        <div class="p-4 space-y-4 pb-6">
+            <div class="glass-card p-5 text-center anim-fade-up">
+                <div class="relative w-28 h-28 mx-auto mb-3">
+                    <svg class="progress-ring w-full h-full" viewBox="0 0 100 100">
+                        <circle stroke="rgba(255,255,255,.08)" stroke-width="8" fill="none" cx="50" cy="50" r="42"/>
+                        <circle class="progress-ring__circle" stroke="url(#overallGrad)" stroke-width="8" fill="none" cx="50" cy="50" r="42" stroke-dasharray="${2*Math.PI*42}" stroke-dashoffset="${2*Math.PI*42}" data-score="${sc.overall_readiness}" data-circ="${2*Math.PI*42}"/>
+                        <defs><linearGradient id="overallGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00ff88"/><stop offset="100%" stop-color="#00d4ff"/></linearGradient></defs>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="font-display font-bold text-2xl text-neon-green">${sc.overall_readiness}</span>
+                        <span class="text-xs text-gray-500">/100</span>
+                    </div>
+                </div>
+                <p class="font-display font-bold text-lg">Interview Readiness</p>
+                <p class="text-xs text-gray-500">${sc.overall_readiness>=80?'🎉 Excellent — Ready to ace it!':sc.overall_readiness>=65?'💪 Good — Keep refining':sc.overall_readiness>=50?'📚 Developing — More practice needed':'🔥 Early stage — Focus on basics'}</p>
+            </div>
+
+            <div class="glass-card p-4 anim-fade-up delay-1">
+                <h3 class="font-semibold text-sm mb-4">Score Breakdown</h3>
+                ${[['Communication',sc.communication,'#00ff88'],['Grammar',sc.grammar,'#ff0080'],['Technical',sc.technical,'#00d4ff']].map(([l,v,c])=>`
+                <div class="mb-3 last:mb-0">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <p class="text-xs text-gray-400">${l}</p>
+                        <p class="text-xs font-mono" style="color:${c}">${v}</p>
+                    </div>
+                    <div class="h-2 rounded-full bg-white/8">
+                        <div class="h-2 rounded-full transition-all duration-1000" style="width:${v}%;background:${c};"></div>
+                    </div>
+                </div>`).join('')}
+            </div>
+
+            <div class="glass-card p-4 anim-fade-up delay-2">
+                <h3 class="font-semibold text-sm mb-4">Study Progress</h3>
+                ${[
+                    ['Grammar Reviewed', reviewedGram, d.grammar_and_speech?.length||0, '#ff0080'],
+                    ['Tech Mastered', masteredTech, d.technical_gaps?.length||0, '#00d4ff'],
+                    ['Tasks Done', doneTasks, totalTasks, '#00ff88']
+                ].map(([l,done,total,c])=>`
+                <div class="flex items-center gap-3 mb-3 last:mb-0">
+                    <p class="text-xs text-gray-400 w-28 flex-shrink-0">${l}</p>
+                    <div class="flex-1 h-2 rounded-full bg-white/8">
+                        <div class="h-2 rounded-full" style="width:${total?Math.round(done/total*100):0}%;background:${c};"></div>
+                    </div>
+                    <p class="text-xs font-mono flex-shrink-0" style="color:${c}">${done}/${total}</p>
+                </div>`).join('')}
+            </div>
+
+            <div class="glass-card p-4 anim-fade-up delay-3">
+                <h3 class="font-semibold text-sm mb-4">Session History (Chart)</h3>
+                <canvas id="progress-chart" height="160"></canvas>
+            </div>
+        </div>`;
+    }
+
+    function initChart() {
+        const canvas = document.getElementById('progress-chart');
+        if (!canvas) return;
+        if (state.chartInst) { state.chartInst.destroy(); state.chartInst=null; }
+        const sc = state.current?.scores;
+        if (!sc) return;
+        state.chartInst = new Chart(canvas, {
+            type: 'radar',
+            data: {
+                labels: ['Communication','Grammar','Technical','Overall'],
+                datasets: [{
+                    label: 'Your Scores',
+                    data: [sc.communication, sc.grammar, sc.technical, sc.overall_readiness],
+                    backgroundColor: 'rgba(0,255,136,.1)',
+                    borderColor: '#00ff88',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#00ff88',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        min: 0, max: 100, ticks: { display: false, stepSize: 25 },
+                        grid: { color: 'rgba(255,255,255,.06)' },
+                        angleLines: { color: 'rgba(255,255,255,.06)' },
+                        pointLabels: { color: 'rgba(255,255,255,.5)', font: { size: 11, family: 'DM Sans' } }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── AI COACH TAB ──────────────────────────────────────────
+    function renderAITab() {
+        hide('main-scroll');
+        show('ai-chat-panel');
+        const keyHint = document.getElementById('ai-key-hint');
+        if (keyHint) {
+            const hasKey = !!getGeminiKey();
+            keyHint.classList.toggle('hidden', hasKey);
+        }
+        // update AI status dot
+        const dot = document.getElementById('ai-status-dot');
+        if (dot) dot.classList.toggle('hidden', !getGeminiKey());
+        renderChatMessages();
+        if (state.chatMessages.length === 0) {
+            addSystemWelcome();
+        }
+    }
+
+    function addSystemWelcome() {
+        const d = state.current;
+        const hasKey = !!getGeminiKey();
+        const welcomeMsg = d
+            ? `👋 Hi! I'm your **AI Interview Coach** powered by Gemini.\n\nI can see your interview data for **${d.interview_meta.company}** (${d.interview_meta.role}) with an overall readiness score of **${d.scores.overall_readiness}/100**.\n\n${hasKey ? "Ask me anything — I'll help you improve! Try the quick actions below or type your question." : "⚠️ Add your free Gemini API key in Settings to unlock AI features. You can still use the quick tips below!"}`
+            : `👋 Hi! I'm your **AI Interview Coach**.\n\n${hasKey ? "Import an interview analysis first so I can give you personalized feedback, or just ask me general interview prep questions!" : "Add your free Gemini API key in Settings, then import an interview to get personalized coaching!"}`;
+        appendChatMessage('ai', welcomeMsg);
+    }
+
+    function renderChatMessages() {
+        const container = document.getElementById('chat-messages');
+        if (!container) return;
+        container.innerHTML = '';
+        state.chatMessages.forEach(m => {
+            const el = createMessageEl(m.role, m.content);
+            container.appendChild(el);
+        });
+        scrollChatToBottom();
+    }
+
+    function createMessageEl(role, content) {
+        const div = document.createElement('div');
+        div.className = `anim-msg-pop ${role==='user'?'chat-msg-user':'chat-msg-ai'} p-3`;
+        // Simple markdown-ish: bold, newlines
+        const html = content
+            .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+            .replace(/\n/g,'<br>');
+        div.innerHTML = `<p class="text-sm leading-relaxed">${html}</p>`;
+        return div;
+    }
+
+    function appendChatMessage(role, content) {
+        state.chatMessages.push({role, content});
+        const container = document.getElementById('chat-messages');
+        if (!container) return;
+        const el = createMessageEl(role, content);
+        container.appendChild(el);
+        scrollChatToBottom();
+    }
+
+    function scrollChatToBottom() {
+        const c = document.getElementById('chat-messages');
+        if (c) setTimeout(()=>{ c.scrollTop = c.scrollHeight; }, 50);
+    }
+
+    function showTypingIndicator() {
+        const c = document.getElementById('chat-messages');
+        if (!c) return;
+        const div = document.createElement('div');
+        div.id = 'typing-indicator';
+        div.className = 'chat-msg-ai p-3 anim-msg-pop';
+        div.innerHTML = '<div class="typing-dots flex gap-1.5 items-center py-1"><span></span><span></span><span></span></div>';
+        c.appendChild(div);
+        scrollChatToBottom();
+    }
+
+    function removeTypingIndicator() {
+        document.getElementById('typing-indicator')?.remove();
+    }
+
+    async function sendChat() {
+        if (state.aiLoading) return;
+        const inp = document.getElementById('chat-input');
+        const msg = inp?.value?.trim();
+        if (!msg) return;
+        inp.value = '';
+        inp.style.height = 'auto';
+        haptic();
+        appendChatMessage('user', msg);
+        await callGemini(msg);
+    }
+
+    async function sendQuickPrompt(type) {
+        if (state.aiLoading) return;
+        const d = state.current;
+        const prompts = {
+            quiz: d ? `Generate 3 technical interview questions based on these knowledge gaps: ${JSON.stringify(d.technical_gaps?.map(g=>g.topic)||[])}. Ask them one by one and wait for my answer.` : "Give me 3 common technical interview questions and how to answer them.",
+            star: d ? `Based on my communication score of ${d.scores?.communication}/100 and these Q&A answers: ${JSON.stringify(d.questions?.map(q=>({q:q.question,a:q.your_answer}))||[])}, give me 3 specific STAR format improvement tips.` : "Explain the STAR method for behavioral interview answers with 2 examples.",
+            gaps: d ? `Analyze my technical gaps: ${JSON.stringify(d.technical_gaps||[])}. Prioritize them by importance and give a 7-day study plan.` : "What are the most important technical topics to study for a software engineering interview?",
+            mock: d ? `Let's do a mock interview. I'm interviewing for ${d.interview_meta.role} at ${d.interview_meta.company}. Ask me your first behavioral question.` : "Let's do a mock interview. Start with a behavioral question."
+        };
+        const p = prompts[type];
+        if (!p) return;
+        haptic();
+        appendChatMessage('user', p.length > 100 ? (type==='quiz'?'🎯 Quiz me on my technical gaps':type==='star'?'⭐ Give me STAR format tips':type==='gaps'?'🔍 Analyze my technical gaps':'🎤 Start a mock interview') : p);
+        await callGemini(p, true); // hiddenPrompt=true for long ones
+    }
+
+    async function callGemini(userMessage, useFullMessage = false) {
+        const key = getGeminiKey();
+        if (!key) {
+            appendChatMessage('ai', '⚠️ No Gemini API key found. Please add your free API key in **Settings** → AI Coach section.\n\nGet your free key at **aistudio.google.com** — it takes 30 seconds!');
+            return;
+        }
+        state.aiLoading = true;
+        const btn = document.getElementById('chat-send-btn');
+        if (btn) btn.innerHTML = '<div class="w-4 h-4 rounded-full border-2 border-white/30 border-t-white anim-spin"></div>';
+        showTypingIndicator();
+        const d = state.current;
+        const systemPrompt = `You are an expert interview coach helping a candidate prepare for tech interviews. Be concise, specific, and actionable. Use emojis sparingly.
+${d ? `
+Interview Context:
+- Company: ${d.interview_meta?.company}, Role: ${d.interview_meta?.role}
+- Scores: Overall ${d.scores?.overall_readiness}/100, Grammar ${d.scores?.grammar}/100, Technical ${d.scores?.technical}/100, Communication ${d.scores?.communication}/100
+- Grammar errors: ${d.grammar_and_speech?.length || 0} issues
+- Technical gaps: ${d.technical_gaps?.map(g=>g.topic).join(', ') || 'none'}
+` : ''}
+Keep responses under 200 words unless doing a mock interview or detailed analysis. Format with **bold** for key points.`;
+
+        // FIX 2: slice(-11, -1) prevents sending the prompt to the API twice 
+        // since `appendChatMessage` already added the user message to state.chatMessages beforehand.
+        const history = state.chatMessages.slice(-11, -1).map(m=>({
+            role: m.role==='ai'?'model':'user',
+            parts:[{text: m.content}]
+        }));
+
+        const body = {
+            system_instruction: { parts:[{text: systemPrompt}] },
+            contents: [
+                ...history,
+                { role:'user', parts:[{text: userMessage}] }
+            ],
+            generationConfig: { maxOutputTokens: 512, temperature: 0.8 }
+        };
+
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            removeTypingIndicator();
+            if (data.error) {
+                appendChatMessage('ai', `❌ API Error: ${data.error.message}\n\nCheck your API key in Settings.`);
+            } else {
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received.';
+                appendChatMessage('ai', text);
+                saveChatHistory();
+            }
+        } catch (err) {
+            removeTypingIndicator();
+            appendChatMessage('ai', `❌ Network error. Check your connection and try again.\n\n(${err.message})`);
+        } finally {
+            state.aiLoading = false;
+            if (btn) btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>';
+        }
+    }
+
+    async function gradeAnswerWithAI() {
+        const i = state.practiceIdx;
+        const q = state.current?.questions?.[i];
+        if (!q) return;
+        const answer = document.getElementById('practice-answer-input')?.value?.trim();
+        if (!answer) { toast('Write your answer first','error'); return; }
+        const key = getGeminiKey();
+        if (!key) { toast('Add Gemini API key in Settings','error'); return; }
+        const btn = document.getElementById('ai-grade-btn');
+        const resultEl = document.getElementById('ai-grade-result');
+        if (btn) btn.textContent = '⏳ Grading…';
+        if (resultEl) { resultEl.innerHTML = '<div class="shimmer-skeleton h-4 w-full mb-2 rounded"></div><div class="shimmer-skeleton h-4 w-3/4 rounded"></div>'; resultEl.style.display='block'; }
+        const prompt = `Grade this interview answer using the STAR format.
+Question: "${q.question}"
+My Answer: "${answer}"
+Ideal Answer: "${q.ideal_star_answer}"
+
+Give: 1) Score 1-10 with emoji, 2) What's good (1-2 points), 3) What to improve (1-2 points), 4) One sentence rewrite tip. Keep it under 120 words.`;
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:300,temperature:.7}})
+            });
+            const data = await res.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Could not grade.';
+            if (resultEl) resultEl.innerHTML = '<p class="text-xs font-semibold text-neon-blue mb-2">🤖 AI Feedback</p>' + text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+        } catch(err) {
+            if (resultEl) resultEl.innerHTML = '<p class="text-red-400 text-xs">Failed to grade. Check connection.</p>';
+        }
+        if (btn) btn.textContent = '🤖 Grade with AI Coach';
+    }
+
+    // ── GEMINI KEY MANAGEMENT ─────────────────────────────────
+    function getGeminiKey() { return localStorage.getItem(K.geminiKey) || ''; }
+    function saveGeminiKey() {
+        const val = document.getElementById('gemini-key-input')?.value?.trim();
+        if (!val || !val.startsWith('AIza')) { toast('Invalid key — must start with AIza…','error'); return; }
+        localStorage.setItem(K.geminiKey, val);
+        updateGeminiStatusUI();
+        toast('Gemini AI key saved! 🤖','success');
+        closeSettings();
+    }
+    function clearGeminiKey() {
+        localStorage.removeItem(K.geminiKey);
+        if (document.getElementById('gemini-key-input')) document.getElementById('gemini-key-input').value='';
+        updateGeminiStatusUI();
+        toast('API key cleared','info');
+    }
+    function updateGeminiStatusUI() {
+        const badge = document.getElementById('gemini-status-badge');
+        const dot = document.getElementById('ai-status-dot');
+        const hasKey = !!getGeminiKey();
+        if (badge) {
+            badge.textContent = hasKey ? 'Active ✓' : 'Not Set';
+            badge.className = hasKey ? 'ml-auto px-2 py-1 rounded-full text-xs font-semibold bg-neon-green/15 text-neon-green' : 'ml-auto px-2 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400';
+        }
+        if (dot) dot.classList.toggle('hidden', !hasKey);
+    }
+
+    // ── SETTINGS ──────────────────────────────────────────────
+    function openSettings() {
+        haptic();
+        updateGeminiStatusUI();
+        const inp = document.getElementById('gemini-key-input');
+        if (inp) { const k=getGeminiKey(); inp.value=k?k.slice(0,8)+'…':''; }
+        show('settings-modal');
+    }
+    function closeSettings() { hide('settings-modal'); }
+
+    // ── IMPORT ────────────────────────────────────────────────
+    function openImportModal() { haptic(); show('import-modal'); }
+    function closeImportModal() { hide('import-modal'); }
+    function loadSampleJSON() {
+        const el = document.getElementById('json-input');
+        if (el) el.value = JSON.stringify(SAMPLE, null, 2);
+    }
+    function validateAndSave() {
+        haptic();
+        const raw = document.getElementById('json-input')?.value?.trim();
+        const errEl = document.getElementById('json-error');
+        if (!raw) { showJsonError(errEl,'Please paste JSON data first'); return; }
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch(e) { showJsonError(errEl,'Invalid JSON: '+e.message); return; }
+        const required = ['interview_meta','scores','grammar_and_speech','technical_gaps','questions','action_plan'];
+        const missing = required.filter(r=>!parsed[r]);
+        if (missing.length) { showJsonError(errEl,'Missing fields: '+missing.join(', ')); return; }
+        if (errEl) errEl.style.display='none';
+        parsed._id = Date.now();
+        state.interviews.push(parsed);
+        state.current = parsed;
+        saveState();
+        closeImportModal();
+        switchTab('dashboard');
+        toast('Interview data imported! 🎉','success');
+        confetti();
+    }
+    function showJsonError(el, msg) { if(el){el.textContent=msg;el.style.display='block';} }
+
+    // ── HISTORY ───────────────────────────────────────────────
+    function openHistoryModal() {
+        haptic();
+        const list = document.getElementById('history-list');
+        if (!list) return;
+        if (!state.interviews.length) {
+            list.innerHTML = '<p class="text-center text-gray-500 py-8">No interviews yet</p>';
+        } else {
+            list.innerHTML = state.interviews.map((iv,i)=>`
+            <div class="glass-card p-4 flex items-center justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-sm truncate">${esc(iv.interview_meta?.company||'Unknown')}</p>
+                    <p class="text-xs text-gray-500 truncate">${esc(iv.interview_meta?.role||'')} • ${fmtDate(iv.interview_meta?.date)}</p>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button onclick="App.loadInterview(${i})" class="px-3 py-1.5 text-xs font-semibold btn-primary">Load</button>
+                    <button onclick="App.deleteInterview(${i})" class="px-3 py-1.5 text-xs btn-ghost text-red-400">✕</button>
+                </div>
+            </div>`).join('');
+        }
+        show('history-modal');
+    }
+    function closeHistoryModal() { hide('history-modal'); }
+    function loadInterview(i) {
+        haptic();
+        if (!state.interviews[i]) return;
+        state.current = state.interviews[i];
+        saveState();
+        closeHistoryModal();
+        closeSettings();
+        switchTab('dashboard');
+        toast('Interview loaded','success');
+    }
+    function deleteInterview(i) {
+        haptic('heavy');
+        if (!confirm('Delete this interview?')) return;
+        state.interviews.splice(i,1);
+        if (state.current === state.interviews[i]) state.current = state.interviews[state.interviews.length-1]||null;
+        saveState();
+        openHistoryModal();
+        toast('Interview deleted','info');
+    }
+
+    // ── SEARCH ────────────────────────────────────────────────
+    function toggleSearch() {
+        haptic('light');
+        const bar = document.getElementById('search-bar');
+        if (!bar) return;
+        const isHidden = bar.style.display==='none';
+        bar.style.display = isHidden ? '' : 'none';
+        if (isHidden) setTimeout(()=>document.getElementById('search-input')?.focus(),100);
+        else document.getElementById('search-results').innerHTML='';
+    }
+    function handleSearch(q) {
+        const res = document.getElementById('search-results');
+        if (!res) return;
+        if (!q.trim()) { res.innerHTML=''; return; }
+        const qLow = q.toLowerCase();
+        const d = state.current;
+        const results = [];
+        if (d) {
+            d.grammar_and_speech?.forEach(e=>{ if(e.original?.toLowerCase().includes(qLow)||e.error_type?.toLowerCase().includes(qLow)) results.push({tab:'grammar',icon:'✍️',title:e.error_type+': '+e.original}); });
+            d.technical_gaps?.forEach(g=>{ if(g.topic?.toLowerCase().includes(qLow)||g.knowledge_gap?.toLowerCase().includes(qLow)) results.push({tab:'technical',icon:'🔧',title:g.topic}); });
+            d.questions?.forEach(q2=>{ if(q2.question?.toLowerCase().includes(qLow)) results.push({tab:'qa',icon:'💬',title:q2.question}); });
+        }
+        if (!results.length) { res.innerHTML='<p class="text-xs text-center text-gray-600 py-3">No results</p>'; return; }
+        res.innerHTML = results.slice(0,5).map(r=>`
+            <button onclick="App.switchTab('${r.tab}');App.toggleSearch();" class="w-full glass-card p-3 flex items-center gap-3 text-left hover:bg-white/5 transition">
+                <span class="text-base">${r.icon}</span>
+                <span class="text-xs truncate">${esc(r.title)}</span>
+            </button>`).join('');
+    }
+
+    // ── EXPORT ────────────────────────────────────────────────
+    function exportData() {
+        haptic();
+        const data = { interviews: state.interviews, exportedAt: new Date().toISOString(), version:'2.0' };
+        const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href=url; a.download=`interviewcrack-backup-${Date.now()}.json`; a.click();
+        URL.revokeObjectURL(url);
+        toast('Data exported!','success');
+    }
+
+    function clearAllData() {
+        haptic('heavy');
+        if (!confirm('Clear ALL data? This cannot be undone.')) return;
+        Object.values(K).forEach(k=>localStorage.removeItem(k));
+        location.reload();
+    }
+
+    // ── KEYBOARD & SWIPE ──────────────────────────────────────
+    function setupKeyboard() {
+        document.addEventListener('keydown', e=>{
+            if (e.key==='Escape') { closeSettings();closeImportModal();closeHistoryModal();closePracticeModal();const bar=document.getElementById('search-bar');if(bar&&bar.style.display!=='none')toggleSearch(); }
+            if ((e.ctrlKey||e.metaKey)&&e.key==='k') { e.preventDefault();toggleSearch(); }
+            if (!e.ctrlKey&&!e.metaKey&&!e.altKey&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA') {
+                const num=parseInt(e.key);
+                if (num>=1&&num<=TABS.length) switchTab(TABS[num-1]);
+            }
+        });
+    }
+
+    function setupSwipe() {
+        const el = document.getElementById('main-scroll');
+        if (!el) return;
+        let startX=0, startY=0;
+        el.addEventListener('touchstart',e=>{startX=e.changedTouches[0].screenX;startY=e.changedTouches[0].screenY;},{passive:true});
+        el.addEventListener('touchend',e=>{
+            const dx=startX-e.changedTouches[0].screenX, dy=startY-e.changedTouches[0].screenY;
+            if (Math.abs(dx)>80&&Math.abs(dx)>Math.abs(dy)*1.5) {
+                const i=TABS.indexOf(state.tab);
+                if (dx>0&&i<TABS.length-1) switchTab(TABS[i+1]);
+                else if (dx<0&&i>0) switchTab(TABS[i-1]);
+            }
+        },{passive:true});
+    }
+
+    // ── UTILITIES ─────────────────────────────────────────────
+    function emptyState(title, subtitle, showBtn) {
+        return `<div class="h-full flex flex-col items-center justify-center p-8 text-center min-h-64">
+            <div class="w-24 h-24 glass-card flex items-center justify-center text-5xl mb-5 anim-float">📭</div>
+            <h3 class="font-display font-bold text-xl mb-2">${title}</h3>
+            <p class="text-gray-500 text-sm mb-6 max-w-xs">${subtitle}</p>
+            ${showBtn?'<button onclick="App.openImportModal()" class="px-6 py-3 btn-primary">Import JSON</button>':''}
+        </div>`;
+    }
+
+    function fmtDate(s, short=false) {
+        if (!s) return 'Unknown';
+        try {
+            const d=new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return d.toLocaleDateString('en-US', short?{month:'short',day:'numeric'}:{year:'numeric',month:'short',day:'numeric'});
+        } catch(e){return s;}
+    }
+
+    function esc(s) {
+        if (!s) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function show(id) { const e=document.getElementById(id); if(e)e.style.display=''; }
+    function hide(id) { const e=document.getElementById(id); if(e)e.style.display='none'; }
+
+    function haptic(type='medium') {
+        try { if ('vibrate' in navigator) { navigator.vibrate({light:8,medium:18,heavy:35}[type]||18); } } catch(e){}
+    }
+
+    function toast(msg, type='info') {
+        const c = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        const styles = {
+            success:'border-l-3 border-neon-green glass-strong text-white',
+            error:  'border-l-3 border-red-400 glass-strong text-white',
+            info:   'border-l-3 border-neon-blue glass-strong text-white'
+        };
+        const icons = {success:'✓',error:'✕',info:'ℹ'};
+        el.className = `toast rounded-xl p-3 flex items-center gap-3 pointer-events-auto ${styles[type]}`;
+        el.style.cssText = 'border-left-width:3px;';
+        el.innerHTML = `<span class="text-base flex-shrink-0">${icons[type]}</span><span class="text-xs">${esc(msg)}</span>`;
+        c.appendChild(el);
+        setTimeout(()=>{el.classList.add('toast-exit');setTimeout(()=>el.remove(),300);},3000);
+    }
+
+    function confetti() {
+        const colors=['#00ff88','#00d4ff','#bf00ff','#ff0080','#ffdd00'];
+        for(let i=0;i<25;i++){
+            setTimeout(()=>{
+                const bit=document.createElement('div');
+                bit.className='confetti-bit';
+                bit.style.cssText=`left:${Math.random()*100}vw;top:-10px;width:8px;height:8px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>.5?'50%':'2px'};animation:confetti ${2+Math.random()*2}s ease-out forwards;`;
+                document.body.appendChild(bit);
+                setTimeout(()=>bit.remove(),4500);
+            },i*50);
+        }
+    }
+
+    // Init on DOM ready
+    if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+    else init();
+
+    // Public API
+    return {
+        switchTab, startWithSample, startFresh,
+        openSettings, closeSettings,
+        openImportModal, closeImportModal, loadSampleJSON, validateAndSave,
+        openHistoryModal, closeHistoryModal, loadInterview, deleteInterview,
+        openPracticeModal, closePracticeModal, savePracticeAnswer,
+        toggleSearch, handleSearch,
+        exportData, clearAllData,
+        filterGrammar, markGrammarReviewed,
+        cycleTechStatus, toggleTask, flipCard,
+        sendChat, sendQuickPrompt,
+        saveGeminiKey, clearGeminiKey,
+        gradeAnswerWithAI
+    };
+})();
+</script>
+</body>
+</html>
